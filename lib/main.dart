@@ -1,7 +1,9 @@
+import 'package:chatapp/screens/chat.dart';
 import 'package:flutter/material.dart';
 import 'package:chatapp/screens/auth.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 
 Future<void> main() async {
@@ -23,7 +25,16 @@ class App extends StatelessWidget {
           seedColor: const Color.fromARGB(255, 63, 17, 177),
         ),
       ),
-      home: const AuthScreen(),
+      // StreamBuilder — это виджет, который слушает Stream (поток данных) и перестраивает
+      // UI каждый раз, когда в поток прилетает новое значение.
+      home: StreamBuilder(
+        stream: FirebaseAuth.instance.authStateChanges(),
+         builder: (ctx, snapshot) {
+            if (snapshot.hasData) {
+                 return ChatScreen();
+            }
+            return const AuthScreen();
+      }),
     );
   }
 }
