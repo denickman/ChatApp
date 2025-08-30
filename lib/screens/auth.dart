@@ -1,5 +1,7 @@
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+final _firebase = FirebaseAuth.instance;
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -24,7 +26,8 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enteredEmail = '';
   var _enteredPassword = '';
 
-  void _submit() {
+  void _submit() async {
+    print(">> SUBMIT");
     /*
       currentState возвращает объект FormState, который содержит состояние всех полей внутри формы.
       Метод validate() проходит по всем FormField (в нашем случае TextFormField) внутри этой формы и 
@@ -34,10 +37,37 @@ class _AuthScreenState extends State<AuthScreen> {
       покажет ошибки под соответствующими полями.
     */
     final isValid = _form.currentState!.validate();
-    if (isValid) {
-      _form.currentState!.save();
-      print(_enteredEmail);
-      print(_enteredPassword);
+    if (!isValid) {
+      print(">> Form is not valid");
+      return;
+    }
+    _form.currentState!.save();
+
+    try {
+      if (_isLogin) {
+        final userCrendetials = await _firebase.signInWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+      } else {
+        final userCredential = await _firebase.createUserWithEmailAndPassword(
+          email: _enteredEmail,
+          password: _enteredPassword,
+        );
+      }
+    } on FirebaseAuthException catch (error) {
+      // on ExceptionType catch — Dart позволяет ловить ошибки определённого типа (гибко и удобно).
+      // будет вызвано только если ошибка именно FirebaseAuthException
+      if (error.code == 'email-already-in-use') {
+        // ...
+      }
+      // ScaffoldMessenger - менеджер для показа временных сообщений (SnackBar) внутри текущего Scaffold.
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message ?? 'Auth failed.')
+      ),
+      );
     }
   }
 
