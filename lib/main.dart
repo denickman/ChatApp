@@ -1,4 +1,5 @@
 import 'package:chatapp/screens/chat.dart';
+import 'package:chatapp/screens/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:chatapp/screens/auth.dart';
 
@@ -29,12 +30,17 @@ class App extends StatelessWidget {
       // UI каждый раз, когда в поток прилетает новое значение.
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
-         builder: (ctx, snapshot) {
-            if (snapshot.hasData) {
-                 return ChatScreen();
-            }
-            return const AuthScreen();
-      }),
+        builder: (ctx, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          }
+
+          if (snapshot.hasData) {
+            return ChatScreen();
+          }
+          return const AuthScreen();
+        },
+      ),
     );
   }
 }
